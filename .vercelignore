@@ -1,0 +1,15 @@
+# Vercel braucht nur die statische Seite in web/
+/app
+/sim
+/tools
+/ui
+/videos
+/out
+/motions
+/models
+/assets
+/.venv
+/server.py
+/dance.py
+/requirements.txt
+/web/test

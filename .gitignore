@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+# heruntergeladene und erzeugte Dateien
+/videos/
+/out/
+/motions/
+/models/
+/assets/
+web/test/fixture.json
+.vercel/

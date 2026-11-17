@@ -1,0 +1,13 @@
+# Lokale App (Python 3.12):  python -m venv .venv  &&  .venv/Scripts/python -m pip install -r requirements.txt
+mujoco
+numpy
+scipy
+pillow
+opencv-python
+mediapipe
+imageio
+imageio-ffmpeg
+fastapi
+uvicorn
+# curl-cffi ist noetig, damit TikTok den Abruf nicht ablehnt
+yt-dlp[default,curl-cffi]

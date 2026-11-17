@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X-Mas Robo</title>
+<meta name="description" content="Drop a dance video or switch on your camera and a Unitree G1 humanoid dances along on a winter stage, right in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;700;800&family=JetBrains+Mono:wght@500;800&display=swap" rel="stylesheet">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<style>
+:root {
+  --bg: #000; --card: #1c1c1c; --card-2: #262626; --line: #343434; --pink: #e8336d; --pink-soft: rgba(232, 51, 109, .16);
+  --text: #fff; --muted: #a9a9a9; --radius: 30px;
+  --sans: "Raleway", "Segoe UI", system-ui, sans-serif; --mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); }
+body { padding: 28px clamp(16px, 2.4vw, 44px) 48px; font-size: 17px; line-height: 1.35; }
+button, input { font: inherit; color: inherit; }
+h1, h2, h3 { margin: 0; text-transform: uppercase; font-weight: 800; letter-spacing: .005em; }
+
+.hero {
+  display: grid; grid-template-columns: auto 1fr minmax(220px, 26%); gap: clamp(24px, 4vw, 80px); align-items: center;
+  border: 2px solid var(--pink); border-radius: 22px; padding: clamp(22px, 2.6vw, 44px) clamp(22px, 3.4vw, 64px);
+}
+.logo { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.logo small { font-weight: 400; font-size: 15px; letter-spacing: .02em; }
+.logo small b { color: var(--pink); font-weight: 500; }
+.wordmark { display: flex; align-items: center; font-family: var(--mono); font-weight: 800; font-size: clamp(38px, 4.4vw, 68px); line-height: 1; letter-spacing: -.02em; }
+.wordmark svg { height: .74em; width: auto; margin: 0 .02em; }
+.hero h1 { font-size: clamp(28px, 3.5vw, 60px); line-height: 1.14; }
+.hero p { margin: 0; font-size: clamp(15px, 1.25vw, 21px); line-height: 1.28; }
+
+.grid { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 24px; margin-top: 28px; align-items: start; }
+.card { background: var(--card); border-radius: var(--radius); padding: clamp(20px, 2vw, 34px); }
+.card h2 { font-size: clamp(22px, 1.8vw, 30px); line-height: 1.2; }
+.side { display: flex; flex-direction: column; gap: 24px; }
+.card p.lead { margin: 10px 0 0; font-size: 17px; color: #e2e2e2; }
+
+.drop {
+  margin-top: 18px; border: 1.5px dashed var(--line); border-radius: 16px; padding: 22px 16px; text-align: center; color: var(--muted);
+  font-size: 15px; cursor: pointer; transition: border-color .15s, color .15s, background .15s; overflow-wrap: anywhere;
+}
+.drop:hover, .drop.over { border-color: var(--pink); color: var(--text); background: var(--pink-soft); }
+.drop.has { border-style: solid; border-color: var(--pink); color: var(--text); }
+label.field { display: block; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.chip { padding: 8px 15px; border-radius: 999px; border: 1.5px solid var(--line); background: none; cursor: pointer; font-size: 15px; transition: all .15s; }
+.chip:hover { border-color: #666; }
+.chip[aria-pressed="true"] { background: var(--text); color: #000; border-color: var(--text); font-weight: 700; }
+.go {
+  margin-top: 20px; width: 100%; padding: 16px; border: 0; border-radius: 18px; background: var(--pink); color: #fff; font-weight: 800;
+  font-size: 18px; text-transform: uppercase; letter-spacing: .04em; cursor: pointer; transition: filter .15s, transform .08s;
+}
+.go:hover { filter: brightness(1.1); } .go:active { transform: scale(.99); }
+.go:disabled { background: var(--card-2); color: #777; cursor: default; filter: none; }
+.go.alt { background: none; border: 2px solid var(--pink); color: var(--pink); }
+.go.alt:hover { background: var(--pink-soft); filter: none; }
+.error { margin-top: 12px; color: #ff7a9c; font-size: 15px; min-height: 1.2em; overflow-wrap: anywhere; }
+.note { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+
+.stage-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.stage-head .sub { margin-top: 6px; color: var(--muted); font-size: 15px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.ghost {
+  padding: 9px 16px; border-radius: 999px; background: none; border: 1.5px solid var(--line); cursor: pointer; font-size: 13px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; transition: all .15s;
+}
+.ghost:hover { border-color: var(--pink); color: var(--pink); }
+.ghost[aria-pressed="true"] { background: var(--text); color: #000; border-color: var(--text); }
+.ghost.on { background: var(--pink); border-color: var(--pink); color: #fff; }
+.screen { margin-top: 20px; border-radius: 20px; background: #050505; overflow: hidden; position: relative; aspect-ratio: 16 / 9; max-height: 74vh; width: 100%; }
+.screen canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.screen canvas:active { cursor: grabbing; }
+.inset { position: absolute; left: 16px; bottom: 16px; width: clamp(110px, 17%, 230px); border-radius: 14px; overflow: hidden; border: 2px solid var(--pink); background: #000; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+.inset video { display: block; width: 100%; max-height: 46vh; object-fit: cover; }
+.inset video.mirror { transform: scaleX(-1); }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.78); backdrop-filter: blur(6px); }
+.overlay > div { width: min(520px, 84%); }
+.overlay h3 { color: var(--pink); font-size: clamp(26px, 3.2vw, 50px); line-height: 1.05; }
+.overlay .pct { font-family: var(--mono); font-size: 14px; color: var(--muted); margin-top: 12px; }
+.bar { height: 4px; background: var(--line); border-radius: 4px; margin-top: 14px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--pink); transition: width .2s ease; }
+.stats { display: flex; gap: 34px; flex-wrap: wrap; margin-top: 20px; }
+.stats div b { display: block; font-family: var(--mono); font-weight: 800; font-size: 22px; }
+.stats div span { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-top: 30px; color: #6c6c6c; font-size: 13px; }
+footer .wordmark { font-size: 22px; color: #fff; }
+
+@media (max-width: 1000px) {
+  .hero { grid-template-columns: 1fr; }
+  .logo { align-items: flex-start; }
+  .grid { grid-template-columns: 1fr; }
+  .stage-card { order: -1; }
+  .stage-head { flex-direction: column; }
+  .actions { justify-content: flex-start; }
+  .screen { aspect-ratio: 4 / 5; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="logo">
+    <small>GRABARZ <b>&amp;</b> PARTNER</small>
+    <div class="wordmark">IMAG<svg viewBox="0 0 5 7" fill="currentColor" aria-hidden="true"><rect x="4" y="0" width="1" height="2"/><rect x="3" y="1" width="1" height="2"/><rect x="2" y="2.5" width="1" height="2"/><rect x="1" y="4" width="1" height="2"/><rect x="0" y="5" width="1" height="2"/></svg>NE</div>
+  </div>
+  <h1>You move.<br>The robot dances.</h1>
+  <p>Drop a dance video or switch on your camera. A Unitree G1 humanoid picks up the choreography on a winter stage, right in your browser.</p>
+</header>
+
+<main class="grid">
+  <div class="side">
+    <section class="card">
+      <h2>Video</h2>
+      <p class="lead">One dancer, whole body in frame works best.</p>
+      <div class="drop" id="drop" tabindex="0" role="button">Drop a video file here or click to choose</div>
+      <input type="file" id="file" accept="video/*" hidden>
+      <label class="field">Length</label>
+      <div class="chips" id="length">
+        <button class="chip" data-s="15" aria-pressed="true">15 s</button>
+        <button class="chip" data-s="30" aria-pressed="false">30 s</button>
+        <button class="chip" data-s="60" aria-pressed="false">60 s</button>
+        <button class="chip" data-s="" aria-pressed="false">Full</button>
+      </div>
+      <button class="go" id="go-file">Make it dance</button>
+      <div class="error" id="error" role="alert"></div>
+    </section>
+
+    <section class="card">
+      <h2>Live</h2>
+      <p class="lead">Dance in front of your camera and the robot follows.</p>
+      <button class="go alt" id="go-live">Start camera</button>
+      <p class="note">Your video never leaves this device. Everything runs in the browser.</p>
+    </section>
+
+    <section class="card">
+      <h2>Demos</h2>
+      <div class="chips" style="margin-top:14px">
+        <button class="chip" data-demo="test_dance">Demo groove</button>
+        <button class="chip" data-demo="kathak">Kathak</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="card stage-card">
+    <div class="stage-head">
+      <div>
+        <h2 id="stage-title">Stage</h2>
+        <div class="sub" id="stage-sub">Loading.</div>
+      </div>
+      <div class="actions">
+        <button class="ghost" data-view="front" aria-pressed="true">Front</button>
+        <button class="ghost" data-view="wide" aria-pressed="false">Wide</button>
+        <button class="ghost" data-view="side" aria-pressed="false">Side</button>
+        <button class="ghost" data-view="top" aria-pressed="false">Top</button>
+        <button class="ghost" id="play">Pause</button>
+        <button class="ghost" id="record">Record</button>
+      </div>
+    </div>
+    <div class="screen">
+      <canvas id="canvas"></canvas>
+      <div class="inset" id="inset" hidden><video id="video" playsinline></video></div>
+      <div class="overlay" id="overlay"><div>
+        <h3 id="overlay-head">Building the stage.</h3>
+        <div class="pct" id="overlay-pct">LOADING</div>
+        <div class="bar"><i id="overlay-bar"></i></div>
+      </div></div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </section>
+</main>
+
+<footer>
+  <span>Kinematic playback in the browser. Pose estimation by MediaPipe, robot model Unitree G1.</span>
+  <div class="wordmark">IMAG<svg viewBox="0 0 5 7" fill="currentColor" aria-hidden="true"><rect x="4" y="0" width="1" height="2"/><rect x="3" y="1" width="1" height="2"/><rect x="2" y="2.5" width="1" height="2"/><rect x="1" y="4" width="1" height="2"/><rect x="0" y="5" width="1" height="2"/></svg>NE</div>
+</footer>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
